@@ -13,16 +13,22 @@ public class RandomRoam : MonoBehaviour
 
     private NavMeshAgent _agent;
     private float _timer;
+    private EnemyVision _vision;
+    private Transform _player;
 
     private void Awake()
     {
         _agent = GetComponent<NavMeshAgent>();
+        _vision = GetComponent<EnemyVision>();
     }
 
     private void Start()
     {
         // Start moving immediately
         _timer = waitTime;
+
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null) _player = playerObj.transform;
     }
 
     private void Update()
@@ -30,6 +36,15 @@ public class RandomRoam : MonoBehaviour
         // Safety check: Ensure agent is active and on the NavMesh
         if (!_agent.isOnNavMesh || !_agent.isActiveAndEnabled) return;
 
+        // 1. Check for Vision (Chase Behavior)
+        if (_vision != null && _vision.canSeePlayer && _player != null)
+        {
+            _agent.SetDestination(_player.position);
+            _timer = 0; // Reset wait timer so we don't pause if we lose sight
+            return; // Skip roaming logic
+        }
+
+        // 2. Roaming Behavior
         // Check if we've reached the destination
         if (!_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance)
         {

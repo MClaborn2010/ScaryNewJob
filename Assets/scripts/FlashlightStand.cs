@@ -69,7 +69,6 @@ public class FlashlightStand : MonoBehaviour
     {
         if (flashlightObject == null)
         {
-            Debug.LogWarning("Flashlight Object not assigned in FlashlightStand!");
             return;
         }
 
@@ -99,7 +98,6 @@ public class FlashlightStand : MonoBehaviour
             {
                 _flashlightController.isHeld = true;
             }
-            Debug.Log("Picked up Flashlight");
         }
         else
         {
@@ -110,7 +108,6 @@ public class FlashlightStand : MonoBehaviour
             {
                 _flashlightController.isHeld = false;
             }
-            Debug.Log("Placed Flashlight back on stand");
         }
     }
 
@@ -124,14 +121,10 @@ public class FlashlightStand : MonoBehaviour
 
     private void RestoreWorldScale(Transform parent)
     {
-        // Calculate the necessary local scale to maintain the target world scale
-        // localScale = targetWorldScale / parentWorldScale
-        // Note: This assumes roughly axis-aligned scaling. 
-        // If the parent is rotated and non-uniformly scaled, skewing is unavoidable in Unity.
+
 
         Vector3 parentScale = parent.lossyScale;
 
-        // Avoid division by zero
         if (parentScale.x == 0) parentScale.x = 0.001f;
         if (parentScale.y == 0) parentScale.y = 0.001f;
         if (parentScale.z == 0) parentScale.z = 0.001f;

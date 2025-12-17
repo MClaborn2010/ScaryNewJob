@@ -51,7 +51,6 @@ public class FlashlightController : MonoBehaviour
             flashlightLight.enabled = _isOn;
         }
 
-        Debug.Log($"Flashlight Initialized. Battery: {currentBattery}, Light Component Found: {flashlightLight != null}");
     }
 
     private void Update()
@@ -62,26 +61,20 @@ public class FlashlightController : MonoBehaviour
             ToggleLight();
         }
 
-        // Debug Logging
-        _logTimer += Time.deltaTime;
-        if (_logTimer >= 1.0f)
-        {
-            Debug.Log($"Flashlight Status - Battery: {currentBattery:F1}/{maxBattery} | IsOn: {_isOn} | Charging: {currentBattery < maxBattery}");
-            _logTimer = 0f;
-        }
+        else
 
-        if (_isOn)
-        {
-            if (currentBattery > 0)
+            if (_isOn)
             {
-                currentBattery -= drainRate * Time.deltaTime;
-                if (currentBattery <= 0)
+                if (currentBattery > 0)
                 {
-                    currentBattery = 0;
-                    ToggleLight(false);
+                    currentBattery -= drainRate * Time.deltaTime;
+                    if (currentBattery <= 0)
+                    {
+                        currentBattery = 0;
+                        ToggleLight(false);
+                    }
                 }
             }
-        }
     }
 
     public void ToggleLight()
@@ -103,7 +96,6 @@ public class FlashlightController : MonoBehaviour
         {
             flashlightLight.enabled = _isOn;
         }
-        Debug.Log($"Flashlight Toggled: {_isOn}. Battery: {currentBattery}");
     }
 
     public void Charge(float amount)
@@ -113,7 +105,5 @@ public class FlashlightController : MonoBehaviour
         {
             currentBattery = maxBattery;
         }
-        // Optional: Debug log to see charging
-        // Debug.Log($"Charging: {currentBattery}/{maxBattery}");
     }
 }
