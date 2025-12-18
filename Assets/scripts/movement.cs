@@ -8,6 +8,9 @@ public class movement : MonoBehaviour
     [Tooltip("Speed in units per second")]
     public float moveSpeed = 5f;
 
+    [Tooltip("Sprint speed in units per second")]
+    public float sprintSpeed = 8f;
+
     [Tooltip("How high the player can jump in units")]
     public float jumpHeight = 1.5f;
 
@@ -68,7 +71,15 @@ public class movement : MonoBehaviour
         // 2. Horizontal Movement (WASD)
         Vector2 inputVector = _inputActions.Player.Move.ReadValue<Vector2>();
         Vector3 moveDirection = (transform.right * inputVector.x) + (transform.forward * inputVector.y);
-        _controller.Move(moveDirection * moveSpeed * Time.deltaTime);
+
+        // Check for sprint
+        float currentSpeed = moveSpeed;
+        if (Keyboard.current != null && Keyboard.current.leftShiftKey.isPressed)
+        {
+            currentSpeed = sprintSpeed;
+        }
+
+        _controller.Move(moveDirection * currentSpeed * Time.deltaTime);
 
         // 3. Jump
         if (_inputActions.Player.Jump.triggered && _isGrounded)
