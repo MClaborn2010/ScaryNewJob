@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 
 public class PlayerInteraction : MonoBehaviour
 {
@@ -13,6 +14,10 @@ public class PlayerInteraction : MonoBehaviour
     [Header("References")]
     [Tooltip("The transform representing the player's hand.")]
     public Transform playerHand;
+
+    [Header("UI")]
+    [Tooltip("Assign a TextMeshProUGUI component to display item info.")]
+    public TextMeshProUGUI itemInfoText;
 
     private InputSystem_Actions _inputActions;
 
@@ -36,6 +41,8 @@ public class PlayerInteraction : MonoBehaviour
         HandleInteraction();
     }
 
+    private Item currentItem; // Track current item to avoid spamming UI updates
+
     private void HandleInteraction()
     {
         // Create a ray from the camera's position forward
@@ -43,19 +50,21 @@ public class PlayerInteraction : MonoBehaviour
         RaycastHit hit;
 
         bool hitSomething;
-        if (interactionLayerMask.value != 0)
-        {
-            hitSomething = Physics.Raycast(ray, out hit, interactionDistance, interactionLayerMask);
-        }
-        else
-        {
-            hitSomething = Physics.Raycast(ray, out hit, interactionDistance);
-        }
+
+        // Ensure we ignore the "UI" layer (usually layer 5) to prevent raycasting against the text itself
+        // We combine the user's mask with a mask that ignores the UI layer
+        int layerMask = interactionLayerMask.value;
+        if (layerMask == 0) layerMask = Physics.DefaultRaycastLayers;
+        layerMask = layerMask & ~(1 << 5); // Bitwise AND with NOT UI layer (5)
+
+        hitSomething = Physics.Raycast(ray, out hit, interactionDistance, layerMask);
+
+        Item item = null;
 
         if (hitSomething)
         {
             // Check if the object we hit has an Item component
-            Item item = hit.collider.GetComponent<Item>();
+            item = hit.collider.GetComponent<Item>();
 
             // If no item found directly, check if it's a FlashlightStand holding an item
             if (item == null)
@@ -65,12 +74,6 @@ public class PlayerInteraction : MonoBehaviour
                 {
                     item = stand.flashlightObject.GetComponent<Item>();
                 }
-            }
-
-            if (item != null)
-            {
-                // Log the description
-                Debug.Log($"Looking at: {item.itemName} - {item.description}");
             }
 
             // Check for Interaction Input
@@ -88,6 +91,24 @@ public class PlayerInteraction : MonoBehaviour
                     {
                         Debug.LogError("Player Hand not assigned in PlayerInteraction script!");
                     }
+                }
+            }
+        }
+
+        // Update UI only if changed
+        if (itemInfoText != null)
+        {
+            if (item != currentItem)
+            {
+                currentItem = item;
+                if (item != null)
+                {
+                    itemInfoText.text = $"<size=70%>{item.description}</size>";
+                    if (!itemInfoText.gameObject.activeSelf) itemInfoText.gameObject.SetActive(true);
+                }
+                else
+                {
+                    if (itemInfoText.gameObject.activeSelf) itemInfoText.gameObject.SetActive(false);
                 }
             }
         }

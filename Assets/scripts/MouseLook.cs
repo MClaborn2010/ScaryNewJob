@@ -12,6 +12,7 @@ public class MouseLook : MonoBehaviour
 
     private float _xRotation = 0f;
     private InputSystem_Actions _inputActions;
+    private int _framesSkipped = 0;
 
     private void Awake()
     {
@@ -30,6 +31,12 @@ public class MouseLook : MonoBehaviour
 
     private void Start()
     {
+        // Initialize rotation to current camera rotation to prevent snapping
+        // We handle the 0-360 wrapping to get a range of -180 to 180
+        Vector3 currentRot = transform.localRotation.eulerAngles;
+        _xRotation = currentRot.x;
+        if (_xRotation > 180) _xRotation -= 360;
+
         // Lock the cursor to the center of the screen and hide it
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -37,17 +44,23 @@ public class MouseLook : MonoBehaviour
 
     private void Update()
     {
+        // Skip the first few frames to avoid the "mouse centering" jump
+        if (_framesSkipped < 5)
+        {
+            _framesSkipped++;
+            return;
+        }
+
         // Read the mouse delta (change in position)
         Vector2 mouseDelta = _inputActions.Player.Look.ReadValue<Vector2>();
 
-        // Adjust for sensitivity and frame time
-        // Note: The New Input System usually returns values that are already frame-rate independent 
-        // if using "Value" type, but multiplying by Time.deltaTime is still common practice 
-        // to make "sensitivity" feel like the old system. 
-        // However, raw mouse delta is usually pixels. 
-        // Let's stick to a simple multiplier.
-        float mouseX = mouseDelta.x * mouseSensitivity * Time.deltaTime;
-        float mouseY = mouseDelta.y * mouseSensitivity * Time.deltaTime;
+        // Adjust for sensitivity
+        // FIX: We do NOT multiply by Time.deltaTime here. 
+        // Mouse delta is a distance (pixels), not a speed. 
+        // Multiplying by deltaTime makes the camera jump if the frame rate drops (like when UI spawns).
+        // We multiply by a small constant (e.g. 0.02) to keep the Inspector sensitivity values comfortable.
+        float mouseX = mouseDelta.x * mouseSensitivity * 0.02f;
+        float mouseY = mouseDelta.y * mouseSensitivity * 0.02f;
 
         // 1. Vertical Rotation (Looking Up/Down)
         // We subtract mouseY because positive Y mouse movement means looking UP, 
